@@ -4,6 +4,7 @@ import co.hrvoje.data.repositories.GamePlayersRepository
 import co.hrvoje.data.repositories.GamesRepository
 import co.hrvoje.data.repositories.UsersRepository
 import co.hrvoje.domain.models.GamePlayer
+import co.hrvoje.domain.utils.GameState
 import co.hrvoje.routing.models.error.ErrorResponse
 import co.hrvoje.routing.models.games.create.CreateGameRequest
 import co.hrvoje.routing.models.games.create.CreateGameResponse
@@ -16,6 +17,7 @@ import co.hrvoje.utils.HashingManager
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -138,6 +140,21 @@ fun Application.configureRouting(
         }
 
         route("/games") {
+            get {
+                val stateParam = call.request.queryParameters["state"]
+                val stateFilter = stateParam?.let {
+                    try {
+                        GameState.valueOf(it)
+                    } catch (e: IllegalArgumentException) {
+                        null
+                    }
+                }
+
+                val games = gamesRepository.getGames(stateFilter)
+
+                call.respond(games)
+            }
+
             post {
                 try {
                     val request = call.receive<CreateGameRequest>()
