@@ -4,6 +4,7 @@ import co.hrvoje.data.repositories.UsersRepository
 import co.hrvoje.routing.models.error.ErrorResponse
 import co.hrvoje.routing.models.login.LoginRequest
 import co.hrvoje.routing.models.login.LoginResponse
+import co.hrvoje.routing.models.logout.LogoutResponse
 import co.hrvoje.routing.models.register.RegisterRequest
 import co.hrvoje.routing.models.register.RegisterResponse
 import co.hrvoje.utils.HashingManager
@@ -116,6 +117,16 @@ fun Application.configureRouting(
                         message = ErrorResponse(message = "Bad request data")
                     )
                 }
+            }
+
+            post("/logout") {
+                call.respond(
+                    status = HttpStatusCode.OK,
+                    message = LogoutResponse(
+                        status = "OK",
+                        message = "User logged out"
+                    )
+                )
             }
         }
     }
