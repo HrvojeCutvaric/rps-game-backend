@@ -1,9 +1,13 @@
 val kotlin_version: String by project
 val logback_version: String by project
+val postgresql_driver_version: String by project
+val exposed_version: String by project
+val jbcrypt: String by project
 
 plugins {
     kotlin("jvm") version "2.2.21"
     id("io.ktor.plugin") version "3.3.2"
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 group = "co.hrvoje"
@@ -20,4 +24,11 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    implementation("org.postgresql:postgresql:$postgresql_driver_version")
+    implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:$kotlin_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$kotlin_version")
+    implementation("org.mindrot:jbcrypt:$jbcrypt")
 }
