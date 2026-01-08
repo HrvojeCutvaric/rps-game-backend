@@ -7,4 +7,8 @@ interface GamesRepository {
     suspend fun create(): Game?
 
     suspend fun getGames(state: GameState?): List<Game>
+
+    suspend fun update(game: Game): Game?
+
+    suspend fun getGameById(id: Int): Game?
 }

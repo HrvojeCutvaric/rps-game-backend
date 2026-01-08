@@ -8,6 +8,7 @@ import co.hrvoje.domain.utils.GameState
 import co.hrvoje.routing.models.error.ErrorResponse
 import co.hrvoje.routing.models.games.create.CreateGameRequest
 import co.hrvoje.routing.models.games.create.CreateGameResponse
+import co.hrvoje.routing.models.join.JoinGameRequest
 import co.hrvoje.routing.models.login.LoginRequest
 import co.hrvoje.routing.models.login.LoginResponse
 import co.hrvoje.routing.models.logout.LogoutResponse
@@ -198,6 +199,84 @@ fun Application.configureRouting(
                         status = HttpStatusCode.Created,
                         message = CreateGameResponse(game = createdGame)
                     )
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
+                }
+            }
+
+            post("/{gameId}/join") {
+                try {
+                    val gameIdParam = call.parameters["gameId"]?.toIntOrNull()
+                    if (gameIdParam == null) {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse("Invalid game ID")
+                        )
+                        return@post
+                    }
+
+                    val request = call.receive<JoinGameRequest>()
+
+                    val user = usersRepository.findByUsername(request.username)
+                    if (user == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "User not found")
+                        )
+                        return@post
+                    }
+
+                    val game = gamesRepository.getGameById(id = gameIdParam)
+                    if (game == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid game ID")
+                        )
+                        return@post
+                    }
+
+                    if (game.state != GameState.WAITING_FOR_PLAYERS) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Game already has player")
+                        )
+                    }
+
+                    val createdGamePlayer = gamePlayersRepository.create(
+                        gamePlayer = GamePlayer(
+                            user = user,
+                            game = game,
+                            score = 0,
+                            hasCreatedGamme = false,
+                        )
+                    )
+
+                    if (createdGamePlayer == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Failed to join game")
+                        )
+                    }
+
+                    val updatedGame = gamesRepository.update(game.copy(state = GameState.IN_PROGRESS))
+
+                    if (updatedGame == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Game could not be updated")
+                        )
+                        return@post
+                    }
+
+                    call.respond(
+                        status = HttpStatusCode.OK,
+                        message = mapOf("status" to "OK"),
+                    )
+
                 } catch (ex: Exception) {
                     println(ex.message)
                     call.respond<ErrorResponse>(
