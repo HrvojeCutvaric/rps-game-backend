@@ -15,11 +15,12 @@ CREATE TABLE IF NOT EXISTS games (
 );
 
 CREATE TABLE IF NOT EXISTS game_players (
+    id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
     game_id INT REFERENCES games(id),
     score INT DEFAULT 0,
     has_created_game BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (user_id, game_id)
+    UNIQUE (user_id, game_id)
 );
 
 CREATE TABLE IF NOT EXISTS rounds (
