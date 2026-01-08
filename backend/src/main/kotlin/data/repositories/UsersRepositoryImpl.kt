@@ -3,6 +3,7 @@ package co.hrvoje.data.repositories
 import co.hrvoje.data.db.dao.UserDAO
 import co.hrvoje.data.db.mappers.suspendTransaction
 import co.hrvoje.data.db.mappers.toUser
+import co.hrvoje.data.db.tables.Users
 import co.hrvoje.domain.models.User
 
 class UsersRepositoryImpl : UsersRepository {
@@ -14,6 +15,15 @@ class UsersRepositoryImpl : UsersRepository {
             }.toUser()
         } catch (error: Throwable) {
             println("Error while creating user: ${error.message}")
+            null
+        }
+    }
+
+    override suspend fun findByUsername(username: String): User? = suspendTransaction {
+        try {
+            UserDAO.find { Users.username eq username }.limit(1).map { it.toUser() }.firstOrNull()
+        } catch (error: Throwable) {
+            println("Error while searching for user: ${error.message}")
             null
         }
     }

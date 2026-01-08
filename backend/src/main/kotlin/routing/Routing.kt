@@ -2,6 +2,8 @@ package co.hrvoje.routing
 
 import co.hrvoje.data.repositories.UsersRepository
 import co.hrvoje.routing.models.error.ErrorResponse
+import co.hrvoje.routing.models.login.LoginRequest
+import co.hrvoje.routing.models.login.LoginResponse
 import co.hrvoje.routing.models.register.RegisterRequest
 import co.hrvoje.routing.models.register.RegisterResponse
 import co.hrvoje.utils.HashingManager
@@ -61,6 +63,57 @@ fun Application.configureRouting(
                     call.respond<ErrorResponse>(
                         status = HttpStatusCode.BadRequest,
                         message = ErrorResponse(message = "Request body is not valid JSON")
+                    )
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
+                }
+            }
+
+            post("/login") {
+                try {
+                    val request = call.receive<LoginRequest>()
+                    val user = usersRepository.findByUsername(request.username)
+                        ?: run {
+                            call.respond<ErrorResponse>(
+                                status = HttpStatusCode.Unauthorized,
+                                message = ErrorResponse(
+                                    message = "Invalid username or password"
+                                )
+                            )
+                            return@post
+                        }
+
+                    val passwordValid = hashingManager.verify(
+                        request.password,
+                        user.password
+                    )
+
+                    if (!passwordValid) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.Unauthorized,
+                            message = ErrorResponse(
+                                message = "Invalid username or password"
+                            )
+                        )
+                        return@post
+                    }
+
+                    call.respond<LoginResponse>(
+                        status = HttpStatusCode.OK,
+                        message = LoginResponse(
+                            userId = user.id.toString(),
+                            username = user.username
+                        )
+                    )
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
                     )
                 }
             }
