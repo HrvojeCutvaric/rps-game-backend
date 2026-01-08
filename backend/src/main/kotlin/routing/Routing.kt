@@ -1,7 +1,12 @@
 package co.hrvoje.routing
 
+import co.hrvoje.data.repositories.GamePlayersRepository
+import co.hrvoje.data.repositories.GamesRepository
 import co.hrvoje.data.repositories.UsersRepository
+import co.hrvoje.domain.models.GamePlayer
 import co.hrvoje.routing.models.error.ErrorResponse
+import co.hrvoje.routing.models.games.create.CreateGameRequest
+import co.hrvoje.routing.models.games.create.CreateGameResponse
 import co.hrvoje.routing.models.login.LoginRequest
 import co.hrvoje.routing.models.login.LoginResponse
 import co.hrvoje.routing.models.logout.LogoutResponse
@@ -18,6 +23,8 @@ import io.ktor.server.routing.*
 fun Application.configureRouting(
     usersRepository: UsersRepository,
     hashingManager: HashingManager,
+    gamesRepository: GamesRepository,
+    gamePlayersRepository: GamePlayersRepository,
 ) {
     routing {
         get("/health") {
@@ -127,6 +134,60 @@ fun Application.configureRouting(
                         message = "User logged out"
                     )
                 )
+            }
+        }
+
+        route("/games") {
+            post {
+                try {
+                    val request = call.receive<CreateGameRequest>()
+                    val user = usersRepository.findByUsername(request.username)
+                    if (user == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "User not found")
+                        )
+                        return@post
+                    }
+
+                    val createdGame = gamesRepository.create()
+
+                    if (createdGame == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Game could not be created")
+                        )
+                        return@post
+                    }
+
+                    val createdGamePlayer = gamePlayersRepository.create(
+                        GamePlayer(
+                            user = user,
+                            game = createdGame,
+                            score = 0,
+                            hasCreatedGamme = true,
+                        )
+                    )
+
+                    if (createdGamePlayer == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Game could not be created")
+                        )
+                        return@post
+                    }
+
+                    call.respond<CreateGameResponse>(
+                        status = HttpStatusCode.Created,
+                        message = CreateGameResponse(game = createdGame)
+                    )
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
+                }
             }
         }
     }

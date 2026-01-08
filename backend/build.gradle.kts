@@ -3,6 +3,7 @@ val logback_version: String by project
 val postgresql_driver_version: String by project
 val exposed_version: String by project
 val jbcrypt: String by project
+val java_time_version: String by project
 
 plugins {
     kotlin("jvm") version "2.2.21"
@@ -31,4 +32,5 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$kotlin_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$kotlin_version")
     implementation("org.mindrot:jbcrypt:$jbcrypt")
+    implementation("org.jetbrains.exposed:exposed-java-time:$java_time_version")
 }

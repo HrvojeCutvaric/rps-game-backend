@@ -1,6 +1,8 @@
 package co.hrvoje
 
 import co.hrvoje.data.db.configureDatabases
+import co.hrvoje.data.repositories.GamePlayersRepositoryImpl
+import co.hrvoje.data.repositories.GamesRepositoryImpl
 import co.hrvoje.data.repositories.UsersRepositoryImpl
 import co.hrvoje.routing.configureRouting
 import co.hrvoje.utils.HashingManagerImpl
@@ -16,6 +18,8 @@ fun main(args: Array<String>) {
 fun Application.module() {
     val usersRepository = UsersRepositoryImpl()
     val hashingManager = HashingManagerImpl()
+    val gamesRepository = GamesRepositoryImpl()
+    val gamePlayersRepository = GamePlayersRepositoryImpl()
 
     install(ContentNegotiation) {
         json()
@@ -24,5 +28,7 @@ fun Application.module() {
     configureRouting(
         usersRepository = usersRepository,
         hashingManager = hashingManager,
+        gamesRepository = gamesRepository,
+        gamePlayersRepository = gamePlayersRepository,
     )
 }
