@@ -13,6 +13,20 @@ services:
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rps_user -d rps_db"]
+      test: [ "CMD-SHELL", "pg_isready -U rps_user -d rps_db" ]
       interval: 5s
       retries: 5
+  ktor:
+    build: ./backend
+    container_name: rps-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: rps_db
+      DB_USER: rps_user
+      DB_PASSWORD: rps_pass
+    ports:
+      - "8080:8080"
