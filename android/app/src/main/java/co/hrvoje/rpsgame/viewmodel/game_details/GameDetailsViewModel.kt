@@ -30,7 +30,7 @@ class GameDetailsViewModel(
                     onSuccess = {
                         _state.value = GameDetailsState(
                             game = it.first().game,
-                            rounds = it,
+                            rounds = it.sortedByDescending { round -> round.createdAt },
                             errorResource = null,
                         )
                     },
