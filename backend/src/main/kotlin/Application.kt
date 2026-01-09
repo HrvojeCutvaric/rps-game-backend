@@ -3,6 +3,7 @@ package co.hrvoje
 import co.hrvoje.data.db.configureDatabases
 import co.hrvoje.data.repositories.GamePlayersRepositoryImpl
 import co.hrvoje.data.repositories.GamesRepositoryImpl
+import co.hrvoje.data.repositories.RoundsRepositoryImpl
 import co.hrvoje.data.repositories.UsersRepositoryImpl
 import co.hrvoje.routing.configureRouting
 import co.hrvoje.utils.HashingManagerImpl
@@ -20,6 +21,7 @@ fun Application.module() {
     val hashingManager = HashingManagerImpl()
     val gamesRepository = GamesRepositoryImpl()
     val gamePlayersRepository = GamePlayersRepositoryImpl()
+    val roundsRepository = RoundsRepositoryImpl()
 
     install(ContentNegotiation) {
         json()
@@ -30,5 +32,6 @@ fun Application.module() {
         hashingManager = hashingManager,
         gamesRepository = gamesRepository,
         gamePlayersRepository = gamePlayersRepository,
+        roundsRepository = roundsRepository,
     )
 }

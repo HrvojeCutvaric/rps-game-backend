@@ -2,6 +2,7 @@ package co.hrvoje.routing
 
 import co.hrvoje.data.repositories.GamePlayersRepository
 import co.hrvoje.data.repositories.GamesRepository
+import co.hrvoje.data.repositories.RoundsRepository
 import co.hrvoje.data.repositories.UsersRepository
 import co.hrvoje.domain.models.GamePlayer
 import co.hrvoje.domain.utils.GameState
@@ -28,6 +29,7 @@ fun Application.configureRouting(
     hashingManager: HashingManager,
     gamesRepository: GamesRepository,
     gamePlayersRepository: GamePlayersRepository,
+    roundsRepository: RoundsRepository,
 ) {
     routing {
         get("/health") {
@@ -283,6 +285,48 @@ fun Application.configureRouting(
                         status = HttpStatusCode.BadRequest,
                         message = ErrorResponse(message = "Bad request data")
                     )
+                }
+            }
+
+            post("/{gameId}/rounds") {
+                try {
+                    val gameId = call.parameters["gameId"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid game id")
+
+                    val game = gamesRepository.getGameById(id = gameId)
+                    if (game == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid game ID")
+                        )
+                        return@post
+                    }
+
+                    if (game.state != GameState.IN_PROGRESS) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Game is not in progress")
+                        )
+                        return@post
+                    }
+
+                    val round = roundsRepository.create(gameId)
+
+                    if (round == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid round")
+                        )
+                        return@post
+                    }
+
+                    call.respond(status = HttpStatusCode.Created, message = round)
+                } catch (ex: BadRequestException) {
+                    println(ex.message)
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse(ex.message ?: "Bad request"))
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to create round"))
                 }
             }
         }

@@ -2,9 +2,11 @@ package co.hrvoje.data.db.mappers
 
 import co.hrvoje.data.db.dao.GameDAO
 import co.hrvoje.data.db.dao.GamePlayerDAO
+import co.hrvoje.data.db.dao.RoundDAO
 import co.hrvoje.data.db.dao.UserDAO
 import co.hrvoje.domain.models.Game
 import co.hrvoje.domain.models.GamePlayer
+import co.hrvoje.domain.models.Round
 import co.hrvoje.domain.models.User
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Transaction
@@ -36,4 +38,10 @@ fun GamePlayerDAO.toGamePlayer() = GamePlayer(
     game = this.game.toGame(),
     score = this.score,
     hasCreatedGamme = this.hasCreatedGame
+)
+
+fun RoundDAO.toRound() = Round(
+    id = this.id.value,
+    game = game.toGame(),
+    startedAt = this.startedAt.toEpochMilli(),
 )
