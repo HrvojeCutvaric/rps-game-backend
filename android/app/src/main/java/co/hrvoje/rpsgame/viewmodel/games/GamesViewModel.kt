@@ -28,11 +28,11 @@ class GamesViewModel(
             viewModelScope.launch {
                 gamesService.getUserGamePlayers(
                     user = it,
-                    status = GameStatus.IN_PROGRESS,
+                    status = null,
                 ).fold(
                     onSuccess = { gamePlayers ->
                         val gameInProgress =
-                            gamePlayers.firstOrNull { it.game.status == GameStatus.IN_PROGRESS }
+                            gamePlayers.firstOrNull { it.game.status == GameStatus.WAITING_FOR_PLAYERS }
                         gameInProgress?.let {
                             appNavigator.navigateTo(
                                 route = Route.Login,

@@ -9,5 +9,5 @@ interface GamesService {
 
     suspend fun getGames(state: GameStatus?): Result<List<Game>>
 
-    suspend fun getUserGamePlayers(user: User, status: GameStatus): Result<List<GamePlayer>>
+    suspend fun getUserGamePlayers(user: User, status: GameStatus?): Result<List<GamePlayer>>
 }

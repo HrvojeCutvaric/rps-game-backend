@@ -37,12 +37,12 @@ class WSGamesService(
 
     override suspend fun getUserGamePlayers(
         user: User,
-        status: GameStatus
+        status: GameStatus?
     ): Result<List<GamePlayer>> {
         try {
             val result = gamesAPI.getUserGamePlayers(
                 username = user.username,
-                state = status.name,
+                state = status?.name,
             )
 
             when (result.isSuccessful) {
