@@ -234,6 +234,8 @@ fun Application.configureRouting(
                         return@post
                     }
 
+                    roundsRepository.create(updatedGame.id)
+
                     call.respond(updatedGame)
                 } catch (ex: Exception) {
                     println(ex.message)
