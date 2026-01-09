@@ -5,4 +5,6 @@ import co.hrvoje.domain.models.Round
 interface RoundsRepository {
 
     suspend fun create(gameId: Int): Round?
+
+    suspend fun getRoundById(roundId: Int): Round?
 }

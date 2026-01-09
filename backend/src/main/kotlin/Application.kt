@@ -1,10 +1,7 @@
 package co.hrvoje
 
 import co.hrvoje.data.db.configureDatabases
-import co.hrvoje.data.repositories.GamePlayersRepositoryImpl
-import co.hrvoje.data.repositories.GamesRepositoryImpl
-import co.hrvoje.data.repositories.RoundsRepositoryImpl
-import co.hrvoje.data.repositories.UsersRepositoryImpl
+import co.hrvoje.data.repositories.*
 import co.hrvoje.routing.configureRouting
 import co.hrvoje.utils.HashingManagerImpl
 import io.ktor.serialization.kotlinx.json.*
@@ -22,6 +19,7 @@ fun Application.module() {
     val gamesRepository = GamesRepositoryImpl()
     val gamePlayersRepository = GamePlayersRepositoryImpl()
     val roundsRepository = RoundsRepositoryImpl()
+    val movesRepository = MovesRepositoryImpl()
 
     install(ContentNegotiation) {
         json()
@@ -33,5 +31,6 @@ fun Application.module() {
         gamesRepository = gamesRepository,
         gamePlayersRepository = gamePlayersRepository,
         roundsRepository = roundsRepository,
+        movesRepository = movesRepository,
     )
 }

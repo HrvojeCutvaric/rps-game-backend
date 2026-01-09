@@ -1,13 +1,7 @@
 package co.hrvoje.data.db.mappers
 
-import co.hrvoje.data.db.dao.GameDAO
-import co.hrvoje.data.db.dao.GamePlayerDAO
-import co.hrvoje.data.db.dao.RoundDAO
-import co.hrvoje.data.db.dao.UserDAO
-import co.hrvoje.domain.models.Game
-import co.hrvoje.domain.models.GamePlayer
-import co.hrvoje.domain.models.Round
-import co.hrvoje.domain.models.User
+import co.hrvoje.data.db.dao.*
+import co.hrvoje.domain.models.*
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -45,3 +39,13 @@ fun RoundDAO.toRound() = Round(
     game = game.toGame(),
     startedAt = this.startedAt.toEpochMilli(),
 )
+
+fun MoveDAO.toMove() = Move(
+    id = this.id.value,
+    user = this.user.toUser(),
+    round = this.round.toRound(),
+    choice = this.choice
+)
+
+fun Round.toRoundDAO(): RoundDAO =
+    RoundDAO.findById(this.id) ?: error("Round not found")

@@ -1,11 +1,10 @@
 package co.hrvoje.routing
 
-import co.hrvoje.data.repositories.GamePlayersRepository
-import co.hrvoje.data.repositories.GamesRepository
-import co.hrvoje.data.repositories.RoundsRepository
-import co.hrvoje.data.repositories.UsersRepository
+import co.hrvoje.data.repositories.*
 import co.hrvoje.domain.models.GamePlayer
 import co.hrvoje.domain.utils.GameState
+import co.hrvoje.domain.utils.MoveType
+import co.hrvoje.routing.models.create_move.CreateMoveRequest
 import co.hrvoje.routing.models.error.ErrorResponse
 import co.hrvoje.routing.models.games.create.CreateGameRequest
 import co.hrvoje.routing.models.games.create.CreateGameResponse
@@ -30,6 +29,7 @@ fun Application.configureRouting(
     gamesRepository: GamesRepository,
     gamePlayersRepository: GamePlayersRepository,
     roundsRepository: RoundsRepository,
+    movesRepository: MovesRepository,
 ) {
     routing {
         get("/health") {
@@ -328,6 +328,70 @@ fun Application.configureRouting(
                 } catch (ex: Exception) {
                     println(ex.message)
                     call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to create round"))
+                }
+            }
+
+            post("/{gameId}/rounds/{roundId}/moves") {
+                try {
+                    val roundId = call.parameters["roundId"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid round id")
+
+                    val round = roundsRepository.getRoundById(roundId)
+
+                    if (round == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid round")
+                        )
+                        return@post
+                    }
+
+                    val request = call.receive<CreateMoveRequest>()
+
+                    val user = usersRepository.findByUsername(request.username)
+                    if (user == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "User not found")
+                        )
+                        return@post
+                    }
+
+                    val choice = try {
+                        MoveType.valueOf(request.choice)
+                    } catch (e: IllegalArgumentException) {
+                        null
+                    }
+
+                    if (choice == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Bad choice")
+                        )
+                        return@post
+                    }
+
+                    val move = movesRepository.createMove(
+                        user = user,
+                        round = round,
+                        choice = choice
+                    )
+                    if (move == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "Failed to create move for round")
+                        )
+                        return@post
+                    }
+                    call.respond(
+                        move.copy(user = user.copy(password = ""))
+                    )
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
                 }
             }
         }

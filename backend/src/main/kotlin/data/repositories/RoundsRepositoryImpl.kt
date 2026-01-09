@@ -26,4 +26,8 @@ class RoundsRepositoryImpl : RoundsRepository {
             null
         }
     }
+
+    override suspend fun getRoundById(roundId: Int): Round? = suspendTransaction {
+        RoundDAO.findById(roundId)?.toRound()
+    }
 }
