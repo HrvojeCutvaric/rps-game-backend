@@ -394,6 +394,33 @@ fun Application.configureRouting(
                     )
                 }
             }
+
+            get("/{gameId}/rounds/{roundId}/moves") {
+                try {
+                    val roundId = call.parameters["roundId"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid round id")
+
+                    val round = roundsRepository.getRoundById(roundId)
+
+                    if (round == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid round")
+                        )
+                        return@get
+                    }
+
+                    val moves = movesRepository.getMovesByRound(round)
+
+                    call.respond(moves.map { it.copy(user = it.user.copy(password = "")) })
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
+                }
+            }
         }
     }
 }

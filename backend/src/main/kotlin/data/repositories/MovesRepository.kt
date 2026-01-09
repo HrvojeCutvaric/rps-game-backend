@@ -12,4 +12,6 @@ interface MovesRepository {
         round: Round,
         choice: MoveType
     ): Move?
+
+    suspend fun getMovesByRound(round: Round): List<Move>
 }

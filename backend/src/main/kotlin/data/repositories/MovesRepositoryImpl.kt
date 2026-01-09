@@ -5,6 +5,7 @@ import co.hrvoje.data.db.mappers.suspendTransaction
 import co.hrvoje.data.db.mappers.toMove
 import co.hrvoje.data.db.mappers.toRoundDAO
 import co.hrvoje.data.db.mappers.toUserDAO
+import co.hrvoje.data.db.tables.Moves.roundId
 import co.hrvoje.domain.models.Move
 import co.hrvoje.domain.models.Round
 import co.hrvoje.domain.models.User
@@ -26,6 +27,15 @@ class MovesRepositoryImpl : MovesRepository {
         } catch (e: Throwable) {
             println("Error while creating move: ${e.message}")
             null
+        }
+    }
+
+    override suspend fun getMovesByRound(round: Round): List<Move> = suspendTransaction {
+        try {
+            MoveDAO.find { roundId eq round.id }.map { it.toMove() }
+        } catch (e: Throwable) {
+            println("Error while getting moves by round: ${e.message}")
+            emptyList()
         }
     }
 }
