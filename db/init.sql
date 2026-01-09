@@ -30,10 +30,11 @@ CREATE TABLE IF NOT EXISTS rounds (
 );
 
 CREATE TABLE IF NOT EXISTS moves (
+    id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
     round_id INT REFERENCES rounds(id),
     choice TEXT NOT NULL,
-    PRIMARY KEY (user_id, round_id),
+    UNIQUE (user_id, round_id),
     CONSTRAINT moves_choice_check
     CHECK (choice IN ('ROCK', 'PAPER', 'SCISSORS'))
 );
