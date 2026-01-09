@@ -1,11 +1,15 @@
 package co.hrvoje.rpsgame.di
 
 import co.hrvoje.rpsgame.data.network.services.AuthService
+import co.hrvoje.rpsgame.data.network.services.GamesService
 import co.hrvoje.rpsgame.data.network.ws.WSAuthService
+import co.hrvoje.rpsgame.data.network.ws.WSGamesService
 import co.hrvoje.rpsgame.data.network.ws.api.AuthAPI
+import co.hrvoje.rpsgame.data.network.ws.api.GamesAPI
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.utils.Constants
 import co.hrvoje.rpsgame.utils.CurrentUser
+import co.hrvoje.rpsgame.viewmodel.games.GamesViewModel
 import co.hrvoje.rpsgame.viewmodel.login.LoginViewModel
 import co.hrvoje.rpsgame.viewmodel.register.RegisterViewModel
 import java.util.concurrent.TimeUnit
@@ -22,9 +26,11 @@ val modules = module {
     singleOf(::AppNavigator).bind<AppNavigator>()
     singleOf(::WSAuthService).bind<AuthService>()
     singleOf(::CurrentUser).bind<CurrentUser>()
+    singleOf(::WSGamesService).bind<GamesService>()
 
     viewModelOf(::LoginViewModel)
     viewModelOf(::RegisterViewModel)
+    viewModelOf(::GamesViewModel)
 
     single {
         createRetrofit(
@@ -33,6 +39,7 @@ val modules = module {
     }
 
     single { get<Retrofit>().create(AuthAPI::class.java) }
+    single { get<Retrofit>().create(GamesAPI::class.java) }
 }
 
 private fun createDefaultOkHttpClient(): OkHttpClient.Builder =

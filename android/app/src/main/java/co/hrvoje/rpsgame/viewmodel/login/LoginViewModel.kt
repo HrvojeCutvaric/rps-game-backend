@@ -46,7 +46,10 @@ class LoginViewModel(
                             )
                         }
                         currentUser.user = user
-                        appNavigator.navigateTo()
+                        appNavigator.navigateTo(
+                            route = Route.Games,
+                            removeRoutes = listOf(Route.Login),
+                        )
                     },
                     onFailure = { error ->
                         val errorMessageResource = when (error) {
