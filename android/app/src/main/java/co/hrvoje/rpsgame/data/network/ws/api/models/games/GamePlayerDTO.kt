@@ -1,18 +1,18 @@
-package co.hrvoje.domain.models
+package co.hrvoje.rpsgame.data.network.ws.api.models.games
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GamePlayer(
+data class GamePlayerDTO(
     @SerialName("id")
     val id: Int,
     @SerialName("user")
-    val user: User,
+    val user: UserDTO,
     @SerialName("game")
-    val game: Game,
+    val game: GameDTO,
     @SerialName("score")
     val score: Int,
     @SerialName("has_created_game")
-    val hasCreatedGame: Boolean,
+    val hasCreateGame: Boolean,
 )

@@ -158,6 +158,49 @@ fun Application.configureRouting(
                 call.respond(games)
             }
 
+            get("/game_players") {
+                try {
+                    val stateParam = call.request.queryParameters["state"]
+                    val stateFilter = stateParam?.let {
+                        try {
+                            GameState.valueOf(it)
+                        } catch (e: IllegalArgumentException) {
+                            null
+                        }
+                    }
+                    val username = call.request.queryParameters["username"]
+                    if (username == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "User not found")
+                        )
+                        return@get
+                    }
+                    val user = usersRepository.findByUsername(username)
+                    if (user == null) {
+                        call.respond<ErrorResponse>(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse(message = "User not found")
+                        )
+                        return@get
+                    }
+
+                    val gamePlayers = gamePlayersRepository.getUserGamePlayers(user)
+
+                    val filteredGamePlayers = stateFilter?.let {
+                        gamePlayers.filter { gamePlayer -> gamePlayer.game.state == it }
+                    } ?: gamePlayers
+
+                    call.respond(filteredGamePlayers.map { it.copy(user = it.user.copy(password = "")) })
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
+                }
+            }
+
             post {
                 try {
                     val request = call.receive<CreateGameRequest>()
@@ -182,10 +225,11 @@ fun Application.configureRouting(
 
                     val createdGamePlayer = gamePlayersRepository.create(
                         GamePlayer(
+                            id = 0,
                             user = user,
                             game = createdGame,
                             score = 0,
-                            hasCreatedGamme = true,
+                            hasCreatedGame = true,
                         )
                     )
 
@@ -251,10 +295,11 @@ fun Application.configureRouting(
 
                     val createdGamePlayer = gamePlayersRepository.create(
                         gamePlayer = GamePlayer(
+                            id = 0,
                             user = user,
                             game = game,
                             score = 0,
-                            hasCreatedGamme = false,
+                            hasCreatedGame = false,
                         )
                     )
 

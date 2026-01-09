@@ -28,10 +28,11 @@ fun Game.toGameDAO(): GameDAO =
     GameDAO.findById(this.id) ?: error("Game not found")
 
 fun GamePlayerDAO.toGamePlayer() = GamePlayer(
+    id = this.id.value,
     user = this.user.toUser(),
     game = this.game.toGame(),
     score = this.score,
-    hasCreatedGamme = this.hasCreatedGame
+    hasCreatedGame = this.hasCreatedGame
 )
 
 fun RoundDAO.toRound() = Round(
