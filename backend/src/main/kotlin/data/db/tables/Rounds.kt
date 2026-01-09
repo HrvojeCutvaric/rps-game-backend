@@ -6,5 +6,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 
 object Rounds : IntIdTable("rounds") {
     val gameId = reference("game_id", Games)
-    val startedAt = timestamp("started_at").defaultExpression(CurrentTimestamp())
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
+    val firstUserMove = varchar("first_user_move", 50).nullable()
+    val secondUserMove = varchar("second_user_move", 50).nullable()
 }

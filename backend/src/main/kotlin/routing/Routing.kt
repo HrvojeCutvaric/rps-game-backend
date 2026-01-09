@@ -1,13 +1,10 @@
 package co.hrvoje.routing
 
-import co.hrvoje.data.repositories.*
-import co.hrvoje.domain.models.GamePlayer
-import co.hrvoje.domain.utils.GameState
-import co.hrvoje.domain.utils.MoveType
-import co.hrvoje.routing.models.create_move.CreateMoveRequest
+import co.hrvoje.data.repositories.GamesRepository
+import co.hrvoje.data.repositories.RoundsRepository
+import co.hrvoje.data.repositories.UsersRepository
 import co.hrvoje.routing.models.error.ErrorResponse
 import co.hrvoje.routing.models.games.create.CreateGameRequest
-import co.hrvoje.routing.models.games.create.CreateGameResponse
 import co.hrvoje.routing.models.join.JoinGameRequest
 import co.hrvoje.routing.models.login.LoginRequest
 import co.hrvoje.routing.models.login.LoginResponse
@@ -27,9 +24,7 @@ fun Application.configureRouting(
     usersRepository: UsersRepository,
     hashingManager: HashingManager,
     gamesRepository: GamesRepository,
-    gamePlayersRepository: GamePlayersRepository,
     roundsRepository: RoundsRepository,
-    movesRepository: MovesRepository,
 ) {
     routing {
         get("/health") {
@@ -144,61 +139,8 @@ fun Application.configureRouting(
 
         route("/games") {
             get {
-                val stateParam = call.request.queryParameters["state"]
-                val stateFilter = stateParam?.let {
-                    try {
-                        GameState.valueOf(it)
-                    } catch (e: IllegalArgumentException) {
-                        null
-                    }
-                }
-
-                val games = gamesRepository.getGames(stateFilter)
-
+                val games = gamesRepository.getGames()
                 call.respond(games)
-            }
-
-            get("/game_players") {
-                try {
-                    val stateParam = call.request.queryParameters["state"]
-                    val stateFilter = stateParam?.let {
-                        try {
-                            GameState.valueOf(it)
-                        } catch (e: IllegalArgumentException) {
-                            null
-                        }
-                    }
-                    val username = call.request.queryParameters["username"]
-                    if (username == null) {
-                        call.respond<ErrorResponse>(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "User not found")
-                        )
-                        return@get
-                    }
-                    val user = usersRepository.findByUsername(username)
-                    if (user == null) {
-                        call.respond<ErrorResponse>(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "User not found")
-                        )
-                        return@get
-                    }
-
-                    val gamePlayers = gamePlayersRepository.getUserGamePlayers(user)
-
-                    val filteredGamePlayers = stateFilter?.let {
-                        gamePlayers.filter { gamePlayer -> gamePlayer.game.state == it }
-                    } ?: gamePlayers
-
-                    call.respond(filteredGamePlayers.map { it.copy(user = it.user.copy(password = "")) })
-                } catch (ex: Exception) {
-                    println(ex.message)
-                    call.respond<ErrorResponse>(
-                        status = HttpStatusCode.BadRequest,
-                        message = ErrorResponse(message = "Bad request data")
-                    )
-                }
             }
 
             post {
@@ -213,7 +155,9 @@ fun Application.configureRouting(
                         return@post
                     }
 
-                    val createdGame = gamesRepository.create()
+                    val createdGame = gamesRepository.create(
+                        user = user,
+                    )
 
                     if (createdGame == null) {
                         call.respond<ErrorResponse>(
@@ -223,28 +167,7 @@ fun Application.configureRouting(
                         return@post
                     }
 
-                    val createdGamePlayer = gamePlayersRepository.create(
-                        GamePlayer(
-                            id = 0,
-                            user = user,
-                            game = createdGame,
-                            score = 0,
-                            hasCreatedGame = true,
-                        )
-                    )
-
-                    if (createdGamePlayer == null) {
-                        call.respond<ErrorResponse>(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "Game could not be created")
-                        )
-                        return@post
-                    }
-
-                    call.respond<CreateGameResponse>(
-                        status = HttpStatusCode.Created,
-                        message = CreateGameResponse(game = createdGame)
-                    )
+                    call.respond(createdGame)
                 } catch (ex: Exception) {
                     println(ex.message)
                     call.respond<ErrorResponse>(
@@ -285,32 +208,23 @@ fun Application.configureRouting(
                         return@post
                     }
 
-                    if (game.state != GameState.WAITING_FOR_PLAYERS) {
+                    if (game.firstUser.id == user.id || game.secondUser?.id == user.id) {
                         call.respond(
                             status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "Game already has player")
+                            message = ErrorResponse(message = "User is already in this game")
                         )
                         return@post
                     }
 
-                    val createdGamePlayer = gamePlayersRepository.create(
-                        gamePlayer = GamePlayer(
-                            id = 0,
-                            user = user,
-                            game = game,
-                            score = 0,
-                            hasCreatedGame = false,
-                        )
-                    )
-
-                    if (createdGamePlayer == null) {
+                    if (game.secondUser != null) {
                         call.respond(
                             status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "Failed to join game")
+                            message = ErrorResponse(message = "This game is full")
                         )
+                        return@post
                     }
 
-                    val updatedGame = gamesRepository.update(game.copy(state = GameState.IN_PROGRESS))
+                    val updatedGame = gamesRepository.update(game.copy(secondUser = user))
 
                     if (updatedGame == null) {
                         call.respond(
@@ -320,11 +234,7 @@ fun Application.configureRouting(
                         return@post
                     }
 
-                    call.respond(
-                        status = HttpStatusCode.OK,
-                        message = mapOf("status" to "OK"),
-                    )
-
+                    call.respond(updatedGame)
                 } catch (ex: Exception) {
                     println(ex.message)
                     call.respond<ErrorResponse>(
@@ -348,7 +258,7 @@ fun Application.configureRouting(
                         return@post
                     }
 
-                    if (game.state != GameState.IN_PROGRESS) {
+                    if (game.secondUser == null) {
                         call.respond(
                             status = HttpStatusCode.BadRequest,
                             message = ErrorResponse(message = "Game is not in progress")
@@ -376,95 +286,28 @@ fun Application.configureRouting(
                 }
             }
 
-            post("/{gameId}/rounds/{roundId}/moves") {
-                try {
-                    val roundId = call.parameters["roundId"]?.toIntOrNull()
-                        ?: throw BadRequestException("Invalid round id")
-
-                    val round = roundsRepository.getRoundById(roundId)
-
-                    if (round == null) {
-                        call.respond(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse("Invalid round")
-                        )
-                        return@post
-                    }
-
-                    val request = call.receive<CreateMoveRequest>()
-
-                    val user = usersRepository.findByUsername(request.username)
-                    if (user == null) {
-                        call.respond<ErrorResponse>(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "User not found")
-                        )
-                        return@post
-                    }
-
-                    val choice = try {
-                        MoveType.valueOf(request.choice)
-                    } catch (e: IllegalArgumentException) {
-                        null
-                    }
-
-                    if (choice == null) {
-                        call.respond(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "Bad choice")
-                        )
-                        return@post
-                    }
-
-                    val move = movesRepository.createMove(
-                        user = user,
-                        round = round,
-                        choice = choice
-                    )
-                    if (move == null) {
-                        call.respond(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse(message = "Failed to create move for round")
-                        )
-                        return@post
-                    }
+            get("/{gameId}/rounds") {
+                val gameId = call.parameters["gameId"]?.toIntOrNull()
+                if (gameId == null) {
                     call.respond(
-                        move.copy(user = user.copy(password = ""))
-                    )
-                } catch (ex: Exception) {
-                    println(ex.message)
-                    call.respond<ErrorResponse>(
                         status = HttpStatusCode.BadRequest,
-                        message = ErrorResponse(message = "Bad request data")
+                        message = ErrorResponse("Invalid game id")
+                    )
+                    return@get
+                }
+
+                val game = gamesRepository.getGameById(gameId)
+
+                if (game == null) {
+                    call.respond(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse("Game not found")
                     )
                 }
-            }
 
-            get("/{gameId}/rounds/{roundId}/moves") {
-                try {
-                    val roundId = call.parameters["roundId"]?.toIntOrNull()
-                        ?: throw BadRequestException("Invalid round id")
+                val rounds = roundsRepository.getRoundsByGameId(gameId = gameId)
 
-                    val round = roundsRepository.getRoundById(roundId)
-
-                    if (round == null) {
-                        call.respond(
-                            status = HttpStatusCode.BadRequest,
-                            message = ErrorResponse("Invalid round")
-                        )
-                        return@get
-                    }
-
-                    val moves = movesRepository.getMovesByRound(round)
-
-                    call.respond(moves.map { it.copy(user = it.user.copy(password = "")) })
-                } catch (ex: Exception) {
-                    println(ex.message)
-                    call.respond<ErrorResponse>(
-                        status = HttpStatusCode.BadRequest,
-                        message = ErrorResponse(message = "Bad request data")
-                    )
-                }
+                call.respond(rounds)
             }
         }
     }

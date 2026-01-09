@@ -1,7 +1,11 @@
 package co.hrvoje.data.db.mappers
 
-import co.hrvoje.data.db.dao.*
-import co.hrvoje.domain.models.*
+import co.hrvoje.data.db.dao.GameDAO
+import co.hrvoje.data.db.dao.RoundDAO
+import co.hrvoje.data.db.dao.UserDAO
+import co.hrvoje.domain.models.Game
+import co.hrvoje.domain.models.Round
+import co.hrvoje.domain.models.User
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -20,33 +24,15 @@ fun User.toUserDAO(): UserDAO =
 
 fun GameDAO.toGame() = Game(
     id = this.id.value,
-    state = this.state,
     createdAt = this.createdAt.toEpochMilli(),
-)
-
-fun Game.toGameDAO(): GameDAO =
-    GameDAO.findById(this.id) ?: error("Game not found")
-
-fun GamePlayerDAO.toGamePlayer() = GamePlayer(
-    id = this.id.value,
-    user = this.user.toUser(),
-    game = this.game.toGame(),
-    score = this.score,
-    hasCreatedGame = this.hasCreatedGame
+    firstUser = this.firstUser.toUser().copy(password = ""),
+    secondUser = this.secondUser?.toUser()?.copy(password = ""),
 )
 
 fun RoundDAO.toRound() = Round(
     id = this.id.value,
     game = game.toGame(),
-    startedAt = this.startedAt.toEpochMilli(),
+    createdAt = this.createdAt.toEpochMilli(),
+    firstUserMove = this.firstUserMove,
+    secondUserMove = this.secondUserMove
 )
-
-fun MoveDAO.toMove() = Move(
-    id = this.id.value,
-    user = this.user.toUser(),
-    round = this.round.toRound(),
-    choice = this.choice
-)
-
-fun Round.toRoundDAO(): RoundDAO =
-    RoundDAO.findById(this.id) ?: error("Round not found")

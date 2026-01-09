@@ -1,12 +1,12 @@
 package co.hrvoje.data.repositories
 
 import co.hrvoje.domain.models.Game
-import co.hrvoje.domain.utils.GameState
+import co.hrvoje.domain.models.User
 
 interface GamesRepository {
-    suspend fun create(): Game?
+    suspend fun create(user: User): Game?
 
-    suspend fun getGames(state: GameState?): List<Game>
+    suspend fun getGames(): List<Game>
 
     suspend fun update(game: Game): Game?
 

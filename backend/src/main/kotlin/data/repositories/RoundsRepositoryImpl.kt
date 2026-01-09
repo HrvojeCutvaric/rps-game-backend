@@ -4,8 +4,8 @@ import co.hrvoje.data.db.dao.GameDAO
 import co.hrvoje.data.db.dao.RoundDAO
 import co.hrvoje.data.db.mappers.suspendTransaction
 import co.hrvoje.data.db.mappers.toRound
+import co.hrvoje.data.db.tables.Rounds
 import co.hrvoje.domain.models.Round
-import co.hrvoje.domain.utils.GameState
 
 class RoundsRepositoryImpl : RoundsRepository {
 
@@ -13,10 +13,6 @@ class RoundsRepositoryImpl : RoundsRepository {
         try {
             val game = GameDAO.findById(gameId)
                 ?: throw IllegalArgumentException("Game not found")
-
-            if (game.state != GameState.IN_PROGRESS) {
-                throw IllegalStateException("Game is not in progress")
-            }
 
             RoundDAO.new {
                 this.game = game
@@ -29,5 +25,14 @@ class RoundsRepositoryImpl : RoundsRepository {
 
     override suspend fun getRoundById(roundId: Int): Round? = suspendTransaction {
         RoundDAO.findById(roundId)?.toRound()
+    }
+
+    override suspend fun getRoundsByGameId(gameId: Int): List<Round> = suspendTransaction {
+        try {
+            RoundDAO.find { Rounds.gameId eq gameId }.map { it.toRound() }
+        } catch (e: Throwable) {
+            println("Error while getting rounds by game: ${e.message}")
+            emptyList()
+        }
     }
 }

@@ -3,17 +3,17 @@ package co.hrvoje.data.repositories
 import co.hrvoje.data.db.dao.GameDAO
 import co.hrvoje.data.db.mappers.suspendTransaction
 import co.hrvoje.data.db.mappers.toGame
-import co.hrvoje.data.db.tables.Games
+import co.hrvoje.data.db.mappers.toUserDAO
 import co.hrvoje.domain.models.Game
-import co.hrvoje.domain.utils.GameState
+import co.hrvoje.domain.models.User
 import java.time.Instant
 
 class GamesRepositoryImpl : GamesRepository {
 
-    override suspend fun create(): Game? = suspendTransaction {
+    override suspend fun create(user: User): Game? = suspendTransaction {
         try {
             GameDAO.new {
-                this.state = GameState.WAITING_FOR_PLAYERS
+                this.firstUser = user.toUserDAO()
             }.toGame()
         } catch (error: Throwable) {
             println("Error while creating game: ${error.message}")
@@ -21,12 +21,8 @@ class GamesRepositoryImpl : GamesRepository {
         }
     }
 
-    override suspend fun getGames(state: GameState?): List<Game> = suspendTransaction {
-        return@suspendTransaction state?.let {
-            GameDAO.find { (Games.state eq state.toString()) }.map { it.toGame() }
-        } ?: run {
-            GameDAO.all().map { it.toGame() }
-        }
+    override suspend fun getGames(): List<Game> = suspendTransaction {
+        GameDAO.all().map { it.toGame() }
     }
 
     override suspend fun update(game: Game): Game? = suspendTransaction {
@@ -35,8 +31,9 @@ class GamesRepositoryImpl : GamesRepository {
                 ?: throw IllegalArgumentException("Game with id ${game.id} not found")
 
             gameDAO.apply {
-                this.state = game.state
                 this.createdAt = Instant.ofEpochMilli(game.createdAt)
+                this.firstUser = game.firstUser.toUserDAO()
+                this.secondUser = game.secondUser?.toUserDAO()
             }.toGame()
         } catch (error: Throwable) {
             println("Error while updating game: ${error.message}")

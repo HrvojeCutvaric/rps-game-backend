@@ -7,4 +7,6 @@ interface RoundsRepository {
     suspend fun create(gameId: Int): Round?
 
     suspend fun getRoundById(roundId: Int): Round?
+
+    suspend fun getRoundsByGameId(gameId: Int): List<Round>
 }

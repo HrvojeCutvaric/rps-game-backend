@@ -1,6 +1,5 @@
 package co.hrvoje.domain.models
 
-import co.hrvoje.domain.utils.GameState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -10,6 +9,8 @@ data class Game(
     val id: Int,
     @SerialName("created_at")
     val createdAt: Long,
-    @SerialName("state")
-    val state: GameState,
+    @SerialName("first_user")
+    val firstUser: User,
+    @SerialName("second_user")
+    val secondUser: User?,
 )
