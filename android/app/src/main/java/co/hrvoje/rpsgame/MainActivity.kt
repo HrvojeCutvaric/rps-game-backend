@@ -17,6 +17,7 @@ import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.navigation.Route
 import co.hrvoje.rpsgame.ui.theme.RockPaperScissorsGameTheme
 import co.hrvoje.rpsgame.view.login.LoginScreen
+import co.hrvoje.rpsgame.view.register.RegisterScreen
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +39,12 @@ class MainActivity : ComponentActivity() {
                     entryProvider = entryProvider {
                         entry<Route.Login> {
                             LoginScreen()
+                        }
+                        entry<Route.Register> {
+                            RegisterScreen()
+                        }
+                        entry<Route.Games> {
+
                         }
                     },
                 )

@@ -5,6 +5,7 @@ import co.hrvoje.rpsgame.data.network.ws.WSAuthService
 import co.hrvoje.rpsgame.data.network.ws.api.AuthAPI
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.utils.Constants
+import co.hrvoje.rpsgame.utils.CurrentUser
 import co.hrvoje.rpsgame.viewmodel.login.LoginViewModel
 import co.hrvoje.rpsgame.viewmodel.register.RegisterViewModel
 import java.util.concurrent.TimeUnit
@@ -20,6 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 val modules = module {
     singleOf(::AppNavigator).bind<AppNavigator>()
     singleOf(::WSAuthService).bind<AuthService>()
+    singleOf(::CurrentUser).bind<CurrentUser>()
 
     viewModelOf(::LoginViewModel)
     viewModelOf(::RegisterViewModel)

@@ -3,10 +3,9 @@ package co.hrvoje.rpsgame.data.network.ws
 import android.util.Log
 import co.hrvoje.rpsgame.data.network.services.AuthService
 import co.hrvoje.rpsgame.data.network.ws.api.AuthAPI
-import co.hrvoje.rpsgame.data.network.ws.api.mappers.toLoginResponse
 import co.hrvoje.rpsgame.data.network.ws.api.models.auth.LoginRequestBody
 import co.hrvoje.rpsgame.data.network.ws.api.models.auth.RegisterRequestBody
-import co.hrvoje.rpsgame.domain.models.LoginResponse
+import co.hrvoje.rpsgame.domain.models.User
 import co.hrvoje.rpsgame.domain.utils.LoginThrowable
 import co.hrvoje.rpsgame.domain.utils.RegisterThrowable
 
@@ -17,7 +16,7 @@ class WSAuthService(
     override suspend fun login(
         username: String,
         password: String
-    ): Result<LoginResponse> {
+    ): Result<User> {
         val loginResult = try {
             authAPI.login(
                 requestBody = LoginRequestBody(
@@ -40,8 +39,14 @@ class WSAuthService(
         val loginResponseDto =
             loginResult.body() ?: return Result.failure(LoginThrowable.Generic)
 
+        val userId = loginResponseDto.userId?.toIntOrNull()
 
-        return Result.success(loginResponseDto.toLoginResponse())
+        if (loginResponseDto.username.isNullOrBlank() || userId == null) return Result.failure(
+            LoginThrowable.Generic
+        )
+
+
+        return Result.success(User(id = userId, username = loginResponseDto.username))
     }
 
     override suspend fun register(

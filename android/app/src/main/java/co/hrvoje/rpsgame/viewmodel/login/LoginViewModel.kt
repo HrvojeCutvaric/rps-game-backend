@@ -6,6 +6,8 @@ import co.hrvoje.rpsgame.R
 import co.hrvoje.rpsgame.data.network.services.AuthService
 import co.hrvoje.rpsgame.domain.utils.LoginThrowable
 import co.hrvoje.rpsgame.navigation.AppNavigator
+import co.hrvoje.rpsgame.navigation.Route
+import co.hrvoje.rpsgame.utils.CurrentUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel(
     private val appNavigator: AppNavigator,
     private val authService: AuthService,
+    private val currentUser: CurrentUser,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -35,14 +38,15 @@ class LoginViewModel(
                     username = state.value.username,
                     password = state.value.password,
                 ).fold(
-                    onSuccess = {
-                        // TODO: Navigate to home screen
+                    onSuccess = { user ->
                         _state.update {
                             it.copy(
                                 errorResource = null,
                                 isButtonLoading = false,
                             )
                         }
+                        currentUser.user = user
+                        appNavigator.navigateTo()
                     },
                     onFailure = { error ->
                         val errorMessageResource = when (error) {
@@ -68,7 +72,10 @@ class LoginViewModel(
             }
 
             LoginAction.OnRegisterClicked -> {
-                // TODO: Navigate to register screen
+                appNavigator.navigateTo(
+                    route = Route.Register,
+                    removeRoutes = listOf(Route.Login),
+                )
             }
 
             is LoginAction.OnUsernameChanged -> {
