@@ -13,4 +13,7 @@ sealed interface Route : NavKey {
 
     @Serializable
     data object Games : Route
+
+    @Serializable
+    data class GameDetail(val gameId: Int) : Route
 }

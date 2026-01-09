@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.hrvoje.rpsgame.R
 import co.hrvoje.rpsgame.data.network.services.GamesService
-import co.hrvoje.rpsgame.domain.utils.GameStatus
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.navigation.Route
 import co.hrvoje.rpsgame.utils.CurrentUser
@@ -16,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class GamesViewModel(
     private val gamesService: GamesService,
-    currentUser: CurrentUser,
+    private val currentUser: CurrentUser,
     private val appNavigator: AppNavigator
 ) : ViewModel() {
 
@@ -24,54 +23,30 @@ class GamesViewModel(
     val state = _state.asStateFlow()
 
     init {
-        currentUser.user?.let {
+        currentUser.user?.let { currentUser ->
             viewModelScope.launch {
-                gamesService.getUserGamePlayers(
-                    user = it,
-                    status = null,
-                ).fold(
-                    onSuccess = { gamePlayers ->
-                        val gameInProgress =
-                            gamePlayers.firstOrNull { it.game.status == GameStatus.WAITING_FOR_PLAYERS }
-                        gameInProgress?.let {
-                            appNavigator.navigateTo(
-                                route = Route.Login,
-                                removeRoutes = listOf(Route.Games),
+                while (true) {
+                    gamesService.getGames().fold(
+                        onSuccess = { games ->
+                            _state.update {
+                                it?.copy(
+                                    games = games,
+                                    errorResource = null,
+                                ) ?: GamesState(
+                                    games = games,
+                                    errorResource = null,
+                                )
+                            }
+                        },
+                        onFailure = {
+                            _state.value = GamesState(
+                                games = emptyList(),
+                                errorResource = R.string.generic_error_message,
                             )
-                            return@launch
                         }
-                        while (true) {
-                            gamesService.getGames(GameStatus.WAITING_FOR_PLAYERS).fold(
-                                onSuccess = { games ->
-                                    val userGames = gamePlayers.map { it.game }
-                                    val filteredGames = games.minus(userGames)
-
-                                    _state.update {
-                                        it?.copy(
-                                            games = filteredGames,
-                                        ) ?: GamesState(
-                                            games = filteredGames,
-                                            errorResource = null,
-                                        )
-                                    }
-                                },
-                                onFailure = {
-                                    _state.value = GamesState(
-                                        games = emptyList(),
-                                        errorResource = R.string.generic_error_message,
-                                    )
-                                }
-                            )
-                            delay(1000)
-                        }
-                    },
-                    onFailure = {
-                        _state.value = GamesState(
-                            games = emptyList(),
-                            errorResource = R.string.generic_error_message,
-                        )
-                    }
-                )
+                    )
+                    delay(1000)
+                }
             }
         }
     }
@@ -79,11 +54,18 @@ class GamesViewModel(
     fun execute(action: GamesAction) {
         when (action) {
             GamesAction.OnGameCreateClicked -> {
-                // TODO: implement on game create clicked
+
+                currentUser.user?.let { user ->
+                    viewModelScope.launch {
+                        gamesService.createGame(user = user)
+                    }
+                }
             }
 
-            is GamesAction.OnGamesJoinClicked -> {
-                // TODO: implement on games join clicked
+            is GamesAction.OnGameClicked -> {
+                appNavigator.navigateTo(
+                    route = Route.GameDetail(action.gameId)
+                )
             }
         }
     }

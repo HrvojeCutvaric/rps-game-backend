@@ -5,5 +5,6 @@ import co.hrvoje.rpsgame.domain.utils.GameStatus
 data class Game(
     val id: Int,
     val createAt: Long,
-    val status: GameStatus,
+    val firstUser: User,
+    val secondUser: User?,
 )

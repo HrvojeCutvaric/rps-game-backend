@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
@@ -46,6 +47,9 @@ class MainActivity : ComponentActivity() {
                         }
                         entry<Route.Games> {
                             GamesScreen()
+                        }
+                        entry<Route.GameDetail> {
+                            Text("GameDetail")
                         }
                     },
                 )

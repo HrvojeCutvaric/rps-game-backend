@@ -56,4 +56,5 @@ dependencies {
     implementation(libs.bundles.koin)
     implementation(libs.bundles.navigation3)
     implementation(libs.bundles.retrofit)
+    implementation(libs.kotlinx.datetime)
 }
