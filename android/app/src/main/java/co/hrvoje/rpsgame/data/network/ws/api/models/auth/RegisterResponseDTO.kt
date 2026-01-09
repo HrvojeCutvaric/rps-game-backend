@@ -1,12 +1,10 @@
 package co.hrvoje.rpsgame.data.network.ws.api.models.auth
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
 data class RegisterResponseDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Int,
-    @SerialName("username")
+    @SerializedName("username")
     val username: String,
 )

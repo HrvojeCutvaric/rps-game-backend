@@ -6,6 +6,6 @@ data class Round(
     val id: Int,
     val game: Game,
     val createdAt: Long,
-    val firstUserMove: Move,
-    val secondUserMove: Move,
+    val firstUserMove: Move?,
+    val secondUserMove: Move?,
 )
