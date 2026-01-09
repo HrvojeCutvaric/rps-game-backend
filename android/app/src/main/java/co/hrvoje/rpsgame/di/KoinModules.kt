@@ -6,6 +6,7 @@ import co.hrvoje.rpsgame.data.network.ws.api.AuthAPI
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.utils.Constants
 import co.hrvoje.rpsgame.viewmodel.login.LoginViewModel
+import co.hrvoje.rpsgame.viewmodel.register.RegisterViewModel
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -21,6 +22,7 @@ val modules = module {
     singleOf(::WSAuthService).bind<AuthService>()
 
     viewModelOf(::LoginViewModel)
+    viewModelOf(::RegisterViewModel)
 
     single {
         createRetrofit(
