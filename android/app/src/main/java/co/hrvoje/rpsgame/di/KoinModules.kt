@@ -1,5 +1,8 @@
 package co.hrvoje.rpsgame.di
 
+import co.hrvoje.rpsgame.data.network.services.AuthService
+import co.hrvoje.rpsgame.data.network.ws.WSAuthService
+import co.hrvoje.rpsgame.data.network.ws.api.AuthAPI
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.utils.Constants
 import co.hrvoje.rpsgame.viewmodel.login.LoginViewModel
@@ -15,6 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 val modules = module {
     singleOf(::AppNavigator).bind<AppNavigator>()
+    singleOf(::WSAuthService).bind<AuthService>()
 
     viewModelOf(::LoginViewModel)
 
@@ -23,6 +27,8 @@ val modules = module {
             okHttpClient = createDefaultOkHttpClient().build()
         )
     }
+
+    single { get<Retrofit>().create(AuthAPI::class.java) }
 }
 
 private fun createDefaultOkHttpClient(): OkHttpClient.Builder =
