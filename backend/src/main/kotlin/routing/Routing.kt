@@ -246,6 +246,7 @@ fun Application.configureRouting(
                             status = HttpStatusCode.BadRequest,
                             message = ErrorResponse(message = "Game already has player")
                         )
+                        return@post
                     }
 
                     val createdGamePlayer = gamePlayersRepository.create(
