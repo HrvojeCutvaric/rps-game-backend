@@ -67,6 +67,11 @@ class GamesViewModel(
             is GamesAction.OnGameClicked -> {
                 appNavigator.navigateTo(route = Route.GameDetails(action.game))
             }
+
+            is GamesAction.OnLogoutClicked -> {
+                currentUser.user = null
+                appNavigator.navigateTo(route = Route.Login, removeRoutes = listOf(Route.Games))
+            }
         }
     }
 }
