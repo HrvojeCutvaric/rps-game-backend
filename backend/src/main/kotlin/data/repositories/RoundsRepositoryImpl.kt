@@ -35,4 +35,16 @@ class RoundsRepositoryImpl : RoundsRepository {
             emptyList()
         }
     }
+
+    override suspend fun update(round: Round): Round? = suspendTransaction {
+        try {
+            RoundDAO.findById(round.id)?.apply {
+                firstUserMove = round.firstUserMove
+                secondUserMove = round.secondUserMove
+            }?.toRound()
+        } catch (error: Throwable) {
+            println("Error while updating round: ${error.message}")
+            null
+        }
+    }
 }

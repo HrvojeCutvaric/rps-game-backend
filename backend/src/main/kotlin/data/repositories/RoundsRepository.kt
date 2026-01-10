@@ -9,4 +9,6 @@ interface RoundsRepository {
     suspend fun getRoundById(roundId: Int): Round?
 
     suspend fun getRoundsByGameId(gameId: Int): List<Round>
+
+    suspend fun update(round: Round): Round?
 }

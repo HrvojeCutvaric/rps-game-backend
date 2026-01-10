@@ -3,6 +3,7 @@ package co.hrvoje.routing
 import co.hrvoje.data.repositories.GamesRepository
 import co.hrvoje.data.repositories.RoundsRepository
 import co.hrvoje.data.repositories.UsersRepository
+import co.hrvoje.domain.utils.MoveType
 import co.hrvoje.routing.models.error.ErrorResponse
 import co.hrvoje.routing.models.games.create.CreateGameRequest
 import co.hrvoje.routing.models.join.JoinGameRequest
@@ -11,6 +12,7 @@ import co.hrvoje.routing.models.login.LoginResponse
 import co.hrvoje.routing.models.logout.LogoutResponse
 import co.hrvoje.routing.models.register.RegisterRequest
 import co.hrvoje.routing.models.register.RegisterResponse
+import co.hrvoje.routing.models.update_round.UpdateRoundRequest
 import co.hrvoje.utils.HashingManager
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -310,6 +312,114 @@ fun Application.configureRouting(
                 val rounds = roundsRepository.getRoundsByGameId(gameId = gameId)
 
                 call.respond(rounds)
+            }
+
+            put("/{gameId}/rounds/{roundId}") {
+                try {
+                    val gameId = call.parameters["gameId"]?.toIntOrNull()
+
+                    if (gameId == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid game id")
+                        )
+                        return@put
+                    }
+
+                    val roundId = call.parameters["roundId"]?.toIntOrNull()
+
+                    if (roundId == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid round id")
+                        )
+                        return@put
+                    }
+
+                    val round = roundsRepository.getRoundById(roundId)
+                    if (round == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Round not found")
+                        )
+                        return@put
+                    }
+
+                    val request = call.receive<UpdateRoundRequest>()
+                    val user = usersRepository.findByUsername(request.username)
+                    if (user == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("User not found")
+                        )
+                        return@put
+                    }
+
+                    if (round.game.secondUser == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Game is not in progress")
+                        )
+                        return@put
+                    }
+
+                    if ((round.game.secondUser.id == user.id || round.game.firstUser.id == user.id).not()) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("User is not in this game")
+                        )
+                        return@put
+                    }
+
+                    val move = try {
+                        MoveType.valueOf(request.move)
+                    } catch (error: Throwable) {
+                        println(error.message)
+                        null
+                    }
+
+                    if (move == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Invalid move type")
+                        )
+                        return@put
+                    }
+
+                    val updatedRound = if (round.game.firstUser.id == user.id) {
+                        roundsRepository.update(round = round.copy(firstUserMove = move))
+                    } else {
+                        roundsRepository.update(round = round.copy(secondUserMove = move))
+                    }
+
+                    if (updatedRound == null) {
+                        call.respond(
+                            status = HttpStatusCode.BadRequest,
+                            message = ErrorResponse("Failed to update round")
+                        )
+                        return@put
+                    }
+
+                    if (updatedRound.firstUserMove != null && updatedRound.secondUserMove != null) {
+                        val newRound = roundsRepository.create(gameId = updatedRound.game.id)
+
+                        if (newRound == null) {
+                            call.respond(
+                                status = HttpStatusCode.BadRequest,
+                                message = ErrorResponse("New round not created")
+                            )
+                            return@put
+                        }
+                    }
+
+                    call.respond(updatedRound)
+                } catch (ex: Exception) {
+                    println(ex.message)
+                    call.respond<ErrorResponse>(
+                        status = HttpStatusCode.BadRequest,
+                        message = ErrorResponse(message = "Bad request data")
+                    )
+                }
             }
         }
     }
