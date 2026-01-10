@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,7 +117,7 @@ private fun GameDetailsLayout(
 
                 RoundsList(
                     modifier = Modifier.weight(1f),
-                    rounds = state.rounds,
+                    state = state,
                 )
 
                 if (state.canCurrentUserPlayMove) {
@@ -160,22 +162,31 @@ private fun ScoreRow(
 
 @Composable
 fun RoundsList(
-    rounds: List<Round>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    state: GameDetailsState,
 ) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
-        items(rounds) { round ->
-            RoundItem(round)
+    state.rounds?.let { rounds ->
+
+        LazyColumn(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            items(rounds) { round ->
+                RoundItem(
+                    state = state,
+                    round = round,
+                )
+            }
         }
     }
 }
 
 @Composable
-fun RoundItem(round: Round) {
+fun RoundItem(
+    state: GameDetailsState,
+    round: Round,
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,12 +194,45 @@ fun RoundItem(round: Round) {
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = round.firstUserMove?.name ?: "-")
-            Text(text = "vs")
-            Text(text = round.secondUserMove?.name ?: "-")
+            val firstUserMove =
+                if (state.isFirstUserMoveVisible(round = round)) {
+                    when (round.firstUserMove) {
+                        Move.ROCK -> "🪨"
+                        Move.PAPER -> "📄"
+                        Move.SCISSORS -> "✂️"
+                        null -> ""
+                    }
+                } else ""
+            val secondUserMove =
+                if (state.isSecondUserMoveVisible(round = round)) {
+                    when (round.secondUserMove) {
+                        Move.ROCK -> "🪨"
+                        Move.PAPER -> "📄"
+                        Move.SCISSORS -> "✂️"
+                        null -> ""
+                    }
+                } else ""
+            Text(
+                modifier = Modifier.width(100.dp),
+                text = firstUserMove,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = "vs",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                modifier = Modifier.width(100.dp),
+                text = secondUserMove,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    textAlign = TextAlign.End
+                )
+            )
         }
     }
 }

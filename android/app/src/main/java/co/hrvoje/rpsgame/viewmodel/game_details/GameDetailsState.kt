@@ -71,21 +71,31 @@ data class GameDetailsState(
                     it.secondUser?.id == currentUser.id
         } ?: false
 
-    val isCurrentUserFirstPlayer: Boolean
+    val isCurrentUserFirstUser: Boolean
         get() = game?.firstUser?.id == currentUser.id
 
-    val isCurrentUserSecondPlayer: Boolean
+    val isCurrentUserSecondUser: Boolean
         get() = game?.secondUser?.id == currentUser.id
 
     val hasCurrentUserPlayed: Boolean
         get() = lastRound?.let { round ->
             when {
-                isCurrentUserFirstPlayer -> round.firstUserMove != null
-                isCurrentUserSecondPlayer -> round.secondUserMove != null
+                isCurrentUserFirstUser -> round.firstUserMove != null
+                isCurrentUserSecondUser -> round.secondUserMove != null
                 else -> true
             }
         } ?: true
 
     val canCurrentUserPlayMove: Boolean
         get() = isCurrentUserInGame && !hasCurrentUserPlayed
+
+    fun isFirstUserMoveVisible(round: Round): Boolean =
+        if (round.firstUserMove != null && round.secondUserMove != null) true
+        else if (isCurrentUserFirstUser) true
+        else hasCurrentUserPlayed
+
+    fun isSecondUserMoveVisible(round: Round): Boolean =
+        if (round.firstUserMove != null && round.secondUserMove != null) true
+        else if (isCurrentUserSecondUser) true
+        else hasCurrentUserPlayed
 }
