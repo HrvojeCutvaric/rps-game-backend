@@ -1,5 +1,6 @@
 package co.hrvoje.rpsgame.view.games
 
+import android.R.attr.text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -134,20 +135,39 @@ private fun GameCard(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            if (game.secondUser == null && game.firstUser.id != currentUser.id) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Surface(
-                    color = Color(0xFFFFC107),
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text(
-                        text = stringResource(R.string.join_in_a_game, game.firstUser.username),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+            val (text, color) = when {
+                game.secondUser == null && game.firstUser.id != currentUser.id -> {
+                    stringResource(
+                        R.string.join_in_a_game,
+                        game.firstUser.username
+                    ) to Color(0xFF2196F3)
                 }
+
+                game.secondUser?.id == currentUser.id || game.firstUser.id == currentUser.id -> {
+                    stringResource(
+                        R.string.your_game
+                    ) to Color(0xFF4CAF50)
+                }
+
+                game.secondUser != null -> {
+                    stringResource(R.string.this_game_is_in_progress) to Color(0xFFFF9800)
+                }
+
+                else -> stringResource(R.string.waiting_for_another_player) to Color.Gray
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Surface(
+                color = color,
+                shape = RoundedCornerShape(50)
+            ) {
+                Text(
+                    text = text,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
