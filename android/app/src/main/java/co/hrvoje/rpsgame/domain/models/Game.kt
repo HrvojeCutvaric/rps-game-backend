@@ -1,6 +1,6 @@
 package co.hrvoje.rpsgame.domain.models
 
-import co.hrvoje.rpsgame.domain.utils.GameStatus
+import kotlinx.serialization.Serializable
 
 data class Game(
     val id: Int,

@@ -6,9 +6,11 @@ import co.hrvoje.rpsgame.data.network.ws.WSAuthService
 import co.hrvoje.rpsgame.data.network.ws.WSGamesService
 import co.hrvoje.rpsgame.data.network.ws.api.AuthAPI
 import co.hrvoje.rpsgame.data.network.ws.api.GamesAPI
+import co.hrvoje.rpsgame.domain.models.Game
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.utils.Constants
 import co.hrvoje.rpsgame.utils.CurrentUser
+import co.hrvoje.rpsgame.viewmodel.game_details.GameDetailsViewModel
 import co.hrvoje.rpsgame.viewmodel.games.GamesViewModel
 import co.hrvoje.rpsgame.viewmodel.login.LoginViewModel
 import co.hrvoje.rpsgame.viewmodel.register.RegisterViewModel
@@ -16,6 +18,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -31,6 +34,14 @@ val modules = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::RegisterViewModel)
     viewModelOf(::GamesViewModel)
+    viewModel { (game: Game) ->
+        GameDetailsViewModel(
+            game = game,
+            appNavigator = get(),
+            currentUser = get(),
+            gamesService = get()
+        )
+    }
 
     single {
         createRetrofit(

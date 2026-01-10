@@ -10,17 +10,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.navigation.Route
 import co.hrvoje.rpsgame.ui.theme.RockPaperScissorsGameTheme
+import co.hrvoje.rpsgame.view.game_details.GameDetailsScreen
 import co.hrvoje.rpsgame.view.games.GamesScreen
 import co.hrvoje.rpsgame.view.login.LoginScreen
 import co.hrvoje.rpsgame.view.register.RegisterScreen
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,8 +50,10 @@ class MainActivity : ComponentActivity() {
                         entry<Route.Games> {
                             GamesScreen()
                         }
-                        entry<Route.GameDetail> {
-                            Text("GameDetail")
+                        entry<Route.GameDetails> {
+                            GameDetailsScreen(
+                                viewModel = koinViewModel { parametersOf(it.game) }
+                            )
                         }
                     },
                 )

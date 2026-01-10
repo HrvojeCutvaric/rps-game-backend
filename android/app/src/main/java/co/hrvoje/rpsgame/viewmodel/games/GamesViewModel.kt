@@ -35,6 +35,7 @@ class GamesViewModel(
                                 ) ?: GamesState(
                                     games = games,
                                     errorResource = null,
+                                    currentUser = currentUser
                                 )
                             }
                         },
@@ -42,6 +43,7 @@ class GamesViewModel(
                             _state.value = GamesState(
                                 games = emptyList(),
                                 errorResource = R.string.generic_error_message,
+                                currentUser = currentUser
                             )
                         }
                     )
@@ -63,9 +65,7 @@ class GamesViewModel(
             }
 
             is GamesAction.OnGameClicked -> {
-                appNavigator.navigateTo(
-                    route = Route.GameDetail(action.gameId)
-                )
+                appNavigator.navigateTo(route = Route.GameDetails(action.game))
             }
         }
     }

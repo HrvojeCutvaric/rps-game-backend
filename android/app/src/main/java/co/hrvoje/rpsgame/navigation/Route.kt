@@ -1,6 +1,7 @@
 package co.hrvoje.rpsgame.navigation
 
 import androidx.navigation3.runtime.NavKey
+import co.hrvoje.rpsgame.domain.models.Game
 import kotlinx.serialization.Serializable
 
 sealed interface Route : NavKey {
@@ -15,5 +16,5 @@ sealed interface Route : NavKey {
     data object Games : Route
 
     @Serializable
-    data class GameDetail(val gameId: Int) : Route
+    data class GameDetails(val game: Game) : Route
 }

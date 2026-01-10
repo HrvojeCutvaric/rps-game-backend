@@ -102,7 +102,8 @@ private fun GamesLayout(
                 items(state.games) { game ->
                     GameCard(
                         game = game,
-                        onGameClicked = { onAction(GamesAction.OnGameClicked(game.id)) }
+                        currentUser = state.currentUser,
+                        onGameClicked = { onAction(GamesAction.OnGameClicked(game = game)) }
                     )
                 }
             }
@@ -113,6 +114,7 @@ private fun GamesLayout(
 @Composable
 private fun GameCard(
     game: Game,
+    currentUser: User,
     onGameClicked: () -> Unit
 ) {
     Card(
@@ -132,18 +134,20 @@ private fun GameCard(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (game.secondUser == null && game.firstUser.id != currentUser.id) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Surface(
-                color = Color(0xFFFFC107),
-                shape = RoundedCornerShape(50)
-            ) {
-                Text(
-                    text = stringResource(R.string.join_in_a_game, game.firstUser.username),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelMedium
-                )
+                Surface(
+                    color = Color(0xFFFFC107),
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text(
+                        text = stringResource(R.string.join_in_a_game, game.firstUser.username),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -172,6 +176,10 @@ private fun GamesScreenPreview() {
                     )
                 },
                 errorResource = null,
+                currentUser = User(
+                    id = 1,
+                    username = "hrvoje-test"
+                )
             ),
             onAction = { }
         )
