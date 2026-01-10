@@ -2,6 +2,7 @@ package co.hrvoje.rpsgame.viewmodel.game_details
 
 import co.hrvoje.rpsgame.domain.models.Game
 import co.hrvoje.rpsgame.domain.models.Round
+import co.hrvoje.rpsgame.domain.models.User
 import co.hrvoje.rpsgame.domain.utils.Move
 
 data class GameDetailsState(
@@ -9,6 +10,7 @@ data class GameDetailsState(
     val rounds: List<Round>?,
     val errorResource: Int?,
     val isJoinVisible: Boolean,
+    val currentUser: User,
 ) {
     companion object {
         enum class RoundResult {
@@ -59,4 +61,31 @@ data class GameDetailsState(
     }
 
     val score = calculateScore()
+
+    val lastRound: Round?
+        get() = rounds?.maxByOrNull { it.createdAt }
+
+    val isCurrentUserInGame: Boolean
+        get() = game?.let {
+            it.firstUser.id == currentUser.id ||
+                    it.secondUser?.id == currentUser.id
+        } ?: false
+
+    val isCurrentUserFirstPlayer: Boolean
+        get() = game?.firstUser?.id == currentUser.id
+
+    val isCurrentUserSecondPlayer: Boolean
+        get() = game?.secondUser?.id == currentUser.id
+
+    val hasCurrentUserPlayed: Boolean
+        get() = lastRound?.let { round ->
+            when {
+                isCurrentUserFirstPlayer -> round.firstUserMove != null
+                isCurrentUserSecondPlayer -> round.secondUserMove != null
+                else -> true
+            }
+        } ?: true
+
+    val canCurrentUserPlayMove: Boolean
+        get() = isCurrentUserInGame && !hasCurrentUserPlayed
 }

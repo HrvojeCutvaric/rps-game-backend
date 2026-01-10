@@ -6,6 +6,7 @@ import co.hrvoje.rpsgame.data.network.ws.api.GamesAPI
 import co.hrvoje.rpsgame.data.network.ws.api.mappers.toGame
 import co.hrvoje.rpsgame.data.network.ws.api.mappers.toRound
 import co.hrvoje.rpsgame.data.network.ws.api.models.games.CreateGameRequest
+import co.hrvoje.rpsgame.data.network.ws.api.models.games.JoinGameRequest
 import co.hrvoje.rpsgame.domain.models.Game
 import co.hrvoje.rpsgame.domain.models.Round
 import co.hrvoje.rpsgame.domain.models.User
@@ -78,7 +79,11 @@ class WSGamesService(
     override suspend fun joinGame(gameId: Int, user: User): Result<Unit> {
         try {
             val result =
-                gamesAPI.createGame(createGameRequest = CreateGameRequest(username = user.username))
+                gamesAPI.joinGame(
+                    gameId = gameId,
+                    joinGameRequest = JoinGameRequest
+                        (username = user.username)
+                )
 
             return when (result.isSuccessful) {
                 true -> Result.success(Unit)

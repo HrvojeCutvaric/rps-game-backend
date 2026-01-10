@@ -6,20 +6,23 @@ import co.hrvoje.rpsgame.R
 import co.hrvoje.rpsgame.data.network.services.GamesService
 import co.hrvoje.rpsgame.domain.models.Game
 import co.hrvoje.rpsgame.navigation.AppNavigator
+import co.hrvoje.rpsgame.navigation.Route
 import co.hrvoje.rpsgame.utils.CurrentUser
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class GameDetailsViewModel(
-    private val game: Game,
     private val appNavigator: AppNavigator,
     private val currentUser: CurrentUser,
     private val gamesService: GamesService,
 ) : ViewModel() {
+
+    private val game: Game = (appNavigator.backStack.last() as Route.GameDetails).game
 
     private val _state = MutableStateFlow<GameDetailsState?>(null)
     val state = _state.asStateFlow()
@@ -59,31 +62,51 @@ class GameDetailsViewModel(
     }
 
     private fun startPolling() {
-        pollingJob = viewModelScope.launch {
-            while (isActive) {
-                gamesService.getGameRounds(game.id).fold(
-                    onSuccess = {
-                        val rounds = it.sortedByDescending { round -> round.createdAt }
-
-                        _state.value = GameDetailsState(
-                            game = game,
-                            rounds = it.sortedByDescending { round -> round.createdAt },
-                            errorResource = null,
-                            isJoinVisible =
-                                game.secondUser == null &&
-                                        game.firstUser.id != currentUser.user?.id
-                        )
-                    },
-                    onFailure = {
-                        _state.value = GameDetailsState(
-                            game = null,
-                            rounds = null,
-                            errorResource = R.string.generic_error_message,
-                            isJoinVisible = false
-                        )
-                    }
-                )
-                delay(1000)
+        currentUser.user?.let { user ->
+            pollingJob = viewModelScope.launch {
+                while (isActive) {
+                    gamesService.getGameRounds(game.id).fold(
+                        onSuccess = { rounds ->
+                            val sortedRounds =
+                                rounds.sortedByDescending { round -> round.createdAt }
+                            val gameFromRound = sortedRounds.firstOrNull()?.game
+                            if (gameFromRound == null) {
+                                _state.value = GameDetailsState(
+                                    game = game,
+                                    rounds = emptyList(),
+                                    errorResource = null,
+                                    isJoinVisible = game.secondUser == null && game.firstUser.id != user.id,
+                                    currentUser = user,
+                                )
+                                return@fold
+                            }
+                            _state.update {
+                                it?.copy(
+                                    game = gameFromRound,
+                                    rounds = sortedRounds,
+                                    errorResource = null,
+                                    isJoinVisible = gameFromRound.secondUser == null && gameFromRound.firstUser.id != user.id,
+                                ) ?: GameDetailsState(
+                                    game = gameFromRound,
+                                    rounds = sortedRounds,
+                                    errorResource = null,
+                                    isJoinVisible = gameFromRound.secondUser == null && gameFromRound.firstUser.id != user.id,
+                                    currentUser = user
+                                )
+                            }
+                        },
+                        onFailure = {
+                            _state.value = GameDetailsState(
+                                game = null,
+                                rounds = null,
+                                errorResource = R.string.generic_error_message,
+                                isJoinVisible = false,
+                                currentUser = user,
+                            )
+                        }
+                    )
+                    delay(1000)
+                }
             }
         }
     }

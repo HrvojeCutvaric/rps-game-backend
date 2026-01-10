@@ -11,7 +11,9 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import co.hrvoje.rpsgame.navigation.AppNavigator
 import co.hrvoje.rpsgame.navigation.Route
@@ -21,8 +23,6 @@ import co.hrvoje.rpsgame.view.games.GamesScreen
 import co.hrvoje.rpsgame.view.login.LoginScreen
 import co.hrvoje.rpsgame.view.register.RegisterScreen
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +40,13 @@ class MainActivity : ComponentActivity() {
                     transitionSpec = {
                         fadeIn(tween(300)) togetherWith fadeOut(tween(300))
                     },
+                    onBack = {
+                        appNavigator.navigateBack()
+                    },
+                    entryDecorators = listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
+                    ),
                     entryProvider = entryProvider {
                         entry<Route.Login> {
                             LoginScreen()
@@ -51,9 +58,7 @@ class MainActivity : ComponentActivity() {
                             GamesScreen()
                         }
                         entry<Route.GameDetails> {
-                            GameDetailsScreen(
-                                viewModel = koinViewModel { parametersOf(it.game) }
-                            )
+                            GameDetailsScreen()
                         }
                     },
                 )

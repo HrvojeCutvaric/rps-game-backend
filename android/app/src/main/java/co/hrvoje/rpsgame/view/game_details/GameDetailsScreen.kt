@@ -61,43 +61,43 @@ private fun GameDetailsLayout(
     state: GameDetailsState,
     onAction: (GameDetailsAction) -> Unit
 ) {
-    if (state.errorResource != null || state.game == null || state.rounds == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(state.errorResource ?: R.string.generic_error_message),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-    } else {
-        Scaffold(
-            topBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(onClick = { onAction(GameDetailsAction.OnBackClicked) }) {
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(onClick = { onAction(GameDetailsAction.OnBackClicked) }) {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(R.drawable.ic_back),
+                        contentDescription = null,
+                    )
+                }
+
+                if (state.isJoinVisible) {
+                    IconButton(onClick = { onAction(GameDetailsAction.OnJoinClicked) }) {
                         Icon(
                             modifier = Modifier.size(24.dp),
-                            painter = painterResource(R.drawable.ic_back),
+                            painter = painterResource(R.drawable.ic_join),
                             contentDescription = null,
                         )
                     }
-
-                    if (state.isJoinVisible) {
-                        IconButton(onClick = { onAction(GameDetailsAction.OnJoinClicked) }) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter = painterResource(R.drawable.ic_join),
-                                contentDescription = null,
-                            )
-                        }
-                    }
                 }
             }
-        ) { paddingValues ->
+        }
+    ) { paddingValues ->
+        if (state.errorResource != null || state.game == null || state.rounds == null) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(state.errorResource ?: R.string.generic_error_message),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+        } else {
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -118,11 +118,13 @@ private fun GameDetailsLayout(
                     rounds = state.rounds,
                 )
 
-                HorizontalDivider()
+                if (state.canCurrentUserPlayMove) {
+                    HorizontalDivider()
 
-                MoveSelection(
-                    onMoveSelected = { onAction(GameDetailsAction.OnMoveClicked(it)) }
-                )
+                    MoveSelection(
+                        onMoveSelected = { onAction(GameDetailsAction.OnMoveClicked(it)) }
+                    )
+                }
             }
         }
     }
@@ -261,6 +263,7 @@ private fun GameDetailsScreenPreview() {
                 },
                 errorResource = null,
                 isJoinVisible = true,
+                currentUser = User(1, "hrvoje-test")
             ),
             onAction = {}
         )

@@ -1,5 +1,6 @@
 package co.hrvoje.rpsgame.navigation
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 
 class AppNavigator {
@@ -14,6 +15,7 @@ class AppNavigator {
             backStack.removeAll(it)
         }
         backStack.add(route)
+        Log.d("AppNavigator", "to backstack: $backStack")
     }
 
     fun navigateBack(
@@ -24,5 +26,6 @@ class AppNavigator {
             val index = backStack.indexOf(it)
             backStack.subList(index - 1, backStack.size).clear()
         } ?: backStack.removeLastOrNull()
+        Log.d("AppNavigator", "back backstack: $backStack")
     }
 }
