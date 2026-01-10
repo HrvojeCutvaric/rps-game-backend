@@ -82,9 +82,9 @@ data class GameDetailsState(
             when {
                 isCurrentUserFirstUser -> round.firstUserMove != null
                 isCurrentUserSecondUser -> round.secondUserMove != null
-                else -> true
+                else -> false
             }
-        } ?: true
+        } ?: false
 
     val canCurrentUserPlayMove: Boolean
         get() = isCurrentUserInGame && !hasCurrentUserPlayed
