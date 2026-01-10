@@ -7,9 +7,11 @@ import co.hrvoje.rpsgame.data.network.ws.api.mappers.toGame
 import co.hrvoje.rpsgame.data.network.ws.api.mappers.toRound
 import co.hrvoje.rpsgame.data.network.ws.api.models.games.CreateGameRequest
 import co.hrvoje.rpsgame.data.network.ws.api.models.games.JoinGameRequest
+import co.hrvoje.rpsgame.data.network.ws.api.models.games.UpdateRoundRequest
 import co.hrvoje.rpsgame.domain.models.Game
 import co.hrvoje.rpsgame.domain.models.Round
 import co.hrvoje.rpsgame.domain.models.User
+import co.hrvoje.rpsgame.domain.utils.Move
 
 class WSGamesService(
     private val gamesAPI: GamesAPI,
@@ -91,6 +93,33 @@ class WSGamesService(
             }
         } catch (error: Throwable) {
             Log.e("WSGamesService", "joinGame: ", error)
+            return Result.failure(error)
+        }
+    }
+
+    override suspend fun updateRound(
+        gameId: Int,
+        roundId: Int,
+        user: User,
+        move: Move
+    ): Result<Unit> {
+        try {
+            val result =
+                gamesAPI.updateRound(
+                    gameId = gameId,
+                    roundId = roundId,
+                    updateRoundRequest = UpdateRoundRequest(
+                        username = user.username,
+                        move = move.name,
+                    )
+                )
+
+            return when (result.isSuccessful) {
+                true -> Result.success(Unit)
+                false -> Result.failure(Throwable(message = "Failed to update round"))
+            }
+        } catch (error: Throwable) {
+            Log.e("WSGamesService", "updateRound: ", error)
             return Result.failure(error)
         }
     }

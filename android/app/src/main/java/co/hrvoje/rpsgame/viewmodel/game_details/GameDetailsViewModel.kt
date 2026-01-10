@@ -56,7 +56,22 @@ class GameDetailsViewModel(
             }
 
             is GameDetailsAction.OnMoveClicked -> {
-                // TODO: implement on move clicked
+                currentUser.user?.let { user ->
+                    _state.value?.let { currentState ->
+                        currentState.game?.let { game ->
+                            currentState.rounds?.firstOrNull()?.let { round ->
+                                viewModelScope.launch {
+                                    gamesService.updateRound(
+                                        gameId = game.id,
+                                        user = user,
+                                        roundId = round.id,
+                                        move = action.move,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
