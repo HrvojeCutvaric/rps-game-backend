@@ -87,7 +87,7 @@ data class GameDetailsState(
         } ?: false
 
     val canCurrentUserPlayMove: Boolean
-        get() = isCurrentUserInGame && !hasCurrentUserPlayed
+        get() = isCurrentUserInGame && !hasCurrentUserPlayed && game?.secondUser != null
 
     fun isFirstUserMoveVisible(round: Round): Boolean =
         if (round.firstUserMove != null && round.secondUserMove != null) true
