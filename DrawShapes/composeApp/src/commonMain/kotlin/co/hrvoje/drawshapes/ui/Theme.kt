@@ -22,7 +22,7 @@ fun DrawShapesTheme(
             Scaffold(
                 modifier = Modifier
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .background(color = MaterialTheme.colorScheme.primary) // status bar color
+                    .background(color = MaterialTheme.colorScheme.background)
                     .windowInsetsPadding(WindowInsets.statusBars),
                 content = content
             )
